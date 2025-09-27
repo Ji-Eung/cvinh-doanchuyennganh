@@ -1,0 +1,417 @@
+openapi: 3.0.3
+info:
+  title: Old Market API
+  version: 0.2.0
+  description: >-
+    Updated specification with unified response envelope, validation schemas, and seller rating average.
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      summary: Register user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /auth/login:
+    post:
+      summary: Login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthTokens'
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthTokens'
+  /posts:
+    get:
+      summary: List posts
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/CategoryParam'
+        - $ref: '#/components/parameters/MinPriceParam'
+        - $ref: '#/components/parameters/MaxPriceParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PostListItem'
+                      meta:
+                        $ref: '#/components/schemas/PaginationMeta'
+    post:
+      summary: Create post
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CreatedId'
+  /posts/{id}:
+    get:
+      summary: Get post detail
+      tags: [Posts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PostDetail'
+  /favorites:
+    get:
+      summary: List favorites
+      tags: [Favorites]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/FavoriteItem' }
+    post:
+      summary: Toggle favorite
+      tags: [Favorites]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FavoriteToggleRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StandardResponse' }
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StandardResponse' }
+  /reports:
+    post:
+      summary: Create report
+      tags: [Reports]
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StandardResponse' }
+  /transactions:
+    post:
+      summary: Create transaction
+      tags: [Transactions]
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransactionCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CreatedId' }
+  /ratings:
+    post:
+      summary: Create rating
+      tags: [Ratings]
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RatingCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CreatedId' }
+  /users/{id}:
+    get:
+      summary: Get user profile with rating average
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserProfile' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    QParam:
+      name: q
+      in: query
+      schema: { type: string }
+    CategoryParam:
+      name: categoryId
+      in: query
+      schema: { type: string }
+    MinPriceParam:
+      name: minPrice
+      in: query
+      schema: { type: number }
+    MaxPriceParam:
+      name: maxPrice
+      in: query
+      schema: { type: number }
+    PageParam:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    LimitParam:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  schemas:
+    StandardResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string, nullable: true }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+          nullable: true
+        data: { nullable: true }
+        meta: { nullable: true }
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        pages: { type: integer }
+    CreatedId:
+      type: object
+      properties:
+        id: { type: string }
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+    AuthTokens:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn: { type: integer }
+    PostListItem:
+      type: object
+      properties:
+        _id: { type: string }
+        title: { type: string }
+        price: { type: number }
+        status: { type: string }
+        categoryId: { type: string }
+        sellerId: { type: string }
+    PostCreateRequest:
+      type: object
+      required: [title, price, categoryId]
+      properties:
+        title: { type: string }
+        price: { type: number, minimum: 0 }
+        description: { type: string }
+        categoryId: { type: string }
+        images:
+          type: array
+          items: { type: string, format: uri }
+          maxItems: 8
+    PostDetail:
+      allOf:
+        - $ref: '#/components/schemas/PostListItem'
+        - type: object
+          properties:
+            description: { type: string }
+            images:
+              type: array
+              items: { type: string, format: uri }
+            sellerRatingAverage: { type: number, nullable: true }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    FavoriteToggleRequest:
+      type: object
+      required: [postId]
+      properties:
+        postId: { type: string }
+    FavoriteItem:
+      type: object
+      properties:
+        _id: { type: string }
+        postId: { type: string }
+        userId: { type: string }
+    ReportCreateRequest:
+      type: object
+      required: [reason]
+      properties:
+        postId: { type: string }
+        reportedUserId: { type: string }
+        reason: { type: string, minLength: 5 }
+    TransactionCreateRequest:
+      type: object
+      required: [postId]
+      properties:
+        postId: { type: string }
+    RatingCreateRequest:
+      type: object
+      required: [transactionId, score]
+      properties:
+        transactionId: { type: string }
+        score: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, maxLength: 500 }
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        avatarUrl: { type: string, nullable: true }
+        role: { type: string }
+        ratingAverage: { type: number, nullable: true }
+        ratingsCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+*** End File

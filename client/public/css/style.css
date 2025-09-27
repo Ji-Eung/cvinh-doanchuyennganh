@@ -1,0 +1,137 @@
+/* Tối giản: có thể copy đầy đủ từ template gốc khi cần. */
+body {
+  font-family: "Roboto", sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  color: #3d464d;
+}
+.bg-dark {
+  background: #222 !important;
+}
+.bg-light {
+  background: #fff !important;
+}
+.text-light {
+  color: #eee !important;
+}
+.text-primary {
+  color: #ffd333 !important;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.card-body {
+  font-size: 0.85rem;
+}
+.product-card {
+  transition: box-shadow 0.15s ease;
+}
+.product-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+.badge-status {
+  background: #fff4c2;
+  color: #665500;
+  font-weight: 500;
+}
+.btn-fav {
+  line-height: 1;
+}
+.layout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.main-content {
+  flex: 1 0 auto;
+}
+.footer {
+  background: #3d464d;
+  color: #fff;
+  padding: 24px 0;
+  margin-top: 40px;
+}
+.footer a {
+  color: #ffd333;
+}
+.filter-bar input,
+.filter-bar select {
+  max-width: 170px;
+}
+.notification-bell {
+  position: relative;
+}
+.notification-bell .count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 14px;
+}
+.dropdown-noti {
+  position: absolute;
+  right: 0;
+  top: 125%;
+  width: 340px;
+  max-height: 420px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  z-index: 2000;
+}
+.dropdown-noti .item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f3f3;
+  cursor: pointer;
+}
+.dropdown-noti .item.unread {
+  background: #fff9dc;
+}
+.dropdown-noti .item:last-child {
+  border-bottom: none;
+}
+.rating-stars button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #ccc;
+  cursor: pointer;
+}
+.rating-stars button.active {
+  color: #ffb400;
+}
+.ratio {
+  width: 100%;
+  position: relative;
+}
+.ratio:before {
+  content: "";
+  display: block;
+  padding-bottom: 100%;
+}
+.ratio > * {
+  position: absolute;
+  inset: 0;
+}
+button.btn {
+  cursor: pointer;
+}
+.avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}

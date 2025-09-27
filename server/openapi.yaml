@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  title: OldMarket API
+  version: 0.4.0
+servers:
+  - url: http://localhost:8080/api
+tags:
+  - name: Auth
+  - name: Posts
+  - name: Uploads
+  - name: Users
+  - name: Favorites
+  - name: Reports
+  - name: Ratings
+  - name: Transactions
+  - name: Admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    StandardResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          nullable: true
+        meta:
+          nullable: true
+    UploadResponse:
+      type: object
+      properties:
+        filename:
+          type: string
+        originalName:
+          type: string
+        mimetype:
+          type: string
+        size:
+          type: integer
+        url:
+          type: string
+        absoluteUrl:
+          type: string
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+          nullable: true
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [pending, approved, sold, rejected]
+        rejectionReason:
+          type: string
+          nullable: true
+        categoryId:
+          type: string
+        sellerId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        pages: { type: integer }
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+paths:
+  /uploads/image:
+    post:
+      summary: Upload single image
+      tags: [Uploads]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/UploadResponse"
+  /posts:
+    post:
+      summary: Create post
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, price, categoryId]
+              properties:
+                title: { type: string }
+                price: { type: number }
+                description: { type: string }
+                categoryId: { type: string }
+                images:
+                  type: array
+                  items: { type: string }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+    get:
+      summary: List posts
+      tags: [Posts]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: categoryId
+          schema: { type: string }
+        - in: query
+          name: minPrice
+          schema: { type: number }
+        - in: query
+          name: maxPrice
+          schema: { type: number }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+  /posts/{id}:
+    get:
+      summary: Get post detail
+      tags: [Posts]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+    patch:
+      summary: Update post
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                price: { type: number }
+                description: { type: string }
+                categoryId: { type: string }
+                images:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+    delete:
+      summary: Delete owned post
+      tags: [Posts]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+  /posts/{id}/images:
+    post:
+      summary: Append image to post
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [imageUrl]
+              properties:
+                imageUrl: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /posts/{id}/mark-sold:
+    post:
+      summary: Mark post as sold
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /posts/{id}/images/delete:
+    post:
+      summary: Delete image from post
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [imageUrl]
+              properties:
+                imageUrl: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /users/{id}:
+    get:
+      summary: Get user profile
+      tags: [Users]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /users/me/avatar:
+    patch:
+      summary: Update avatar
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [avatarUrl]
+              properties:
+                avatarUrl: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /auth/register:
+    post:
+      summary: Register account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "201": { description: Created }
+  /auth/login:
+    post:
+      summary: Login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "200": { description: OK }
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        "200": { description: OK }
+  /auth/logout:
+    post:
+      summary: Logout (revoke refresh)
+      tags: [Auth]
+      responses:
+        "200": { description: OK }
+  /favorites:
+    get:
+      summary: List favorites
+      security: [{ bearerAuth: [] }]
+      tags: [Favorites]
+      responses:
+        "200": { description: OK }
+    post:
+      summary: Toggle favorite
+      security: [{ bearerAuth: [] }]
+      tags: [Favorites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId]
+              properties:
+                postId: { type: string }
+      responses:
+        "200": { description: OK }
+  /reports:
+    post:
+      summary: Create report
+      security: [{ bearerAuth: [] }]
+      tags: [Reports]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                postId: { type: string }
+                reportedUserId: { type: string }
+                reason: { type: string }
+      responses:
+        "201": { description: Created }
+  /transactions:
+    post:
+      summary: Create transaction
+      security: [{ bearerAuth: [] }]
+      tags: [Transactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [postId]
+              properties:
+                postId: { type: string }
+      responses:
+        "201": { description: Created }
+  /ratings:
+    post:
+      summary: Create rating
+      security: [{ bearerAuth: [] }]
+      tags: [Ratings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transactionId, score]
+              properties:
+                transactionId: { type: string }
+                score: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+      responses:
+        "201": { description: Created }
+  /admin/dashboard:
+    get:
+      summary: Admin dashboard stats
+      security: [{ bearerAuth: [] }]
+      tags: [Admin]
+      responses:
+        "200": { description: OK }
+  /admin/posts/{id}/approve:
+    patch:
+      summary: Approve post
+      security: [{ bearerAuth: [] }]
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+  /admin/posts/{id}/reject:
+    patch:
+      summary: Reject post
+      security: [{ bearerAuth: [] }]
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }

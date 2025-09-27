@@ -1,0 +1,33 @@
+# Node
+node_modules/
+
+# Env files
+*.env
+*.env.local
+client/.env
+server/.env
+server/.env.docker
+
+# Dist / build outputs
+client/dist/
+server/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
