@@ -11,15 +11,15 @@ if (!fs.existsSync(uploadRoot)) {
 
 const storage = multer.diskStorage({
   destination: function (
-    _req: Express.Request,
-    _file: Express.Multer.File,
+    _req: import("express").Request,
+    _file: any,
     cb: (error: Error | null, destination: string) => void
   ) {
     cb(null, uploadRoot);
   },
   filename: function (
-    _req: Express.Request,
-    file: Express.Multer.File,
+    _req: import("express").Request,
+    file: any,
     cb: (error: Error | null, filename: string) => void
   ) {
     const ext = path.extname(file.originalname) || "";
@@ -29,8 +29,8 @@ const storage = multer.diskStorage({
 });
 
 export const imageFileFilter: multer.Options["fileFilter"] = (
-  _req: Express.Request,
-  file: Express.Multer.File,
+  _req: import("express").Request,
+  file: any,
   cb: multer.FileFilterCallback
 ) => {
   if (!/^image\//.test(file.mimetype))

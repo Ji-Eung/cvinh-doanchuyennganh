@@ -12,7 +12,7 @@ router.post("/image", auth, (req: Request, res: Response) => {
       return badRequest(res, err.message || "Upload failed");
     }
     if (!req.file) return badRequest(res, "No file uploaded");
-    const file = req.file as Express.Multer.File;
+    const file: any = req.file;
     return ok(res, {
       filename: file.filename,
       originalName: file.originalname,

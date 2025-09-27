@@ -16,10 +16,10 @@ router.post("/image", auth, (req: Request, res: Response) => {
       return badRequest(res, err.message || "Upload failed");
     }
     if (!req.file) return badRequest(res, "No file uploaded");
-    const file = req.file as Express.Multer.File;
+    const file: any = req.file;
     // Magic bytes validation (best-effort) reading a small chunk
     try {
-      const buf = file.buffer || undefined; // diskStorage does not keep buffer by default
+      const buf = (file as any).buffer || undefined; // diskStorage does not keep buffer by default
       if (buf) {
         try {
           const okMagic = await verifyImageMagic(buf);
